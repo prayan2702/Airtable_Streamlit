@@ -8,50 +8,66 @@ AIRTABLE_TOKEN = RAW_TOKEN.strip()
 BASE_ID = "app3tvRmLUYUWw3cM"
 TABLE_NAME = "Table 1" 
 
-st.set_page_config(page_title="AI Bridge Pro", page_icon="🚀", layout="wide")
+st.set_page_config(page_title="AI Sync Pro", page_icon="🚀", layout="wide")
+
+# CSS: Text box ko bada aur readable banane ke liye
+st.markdown("""
+<style>
+    .stCode { 
+        border: 2px solid #4A90E2 !important; 
+        border-radius: 10px !important;
+    }
+    /* Code block ki height badhane ke liye custom CSS */
+    .stCode > div {
+        min-height: 300px !important;
+    }
+    .main {
+        background-color: #f9f9f9;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 st.title("🚀 AI Sync: Mobile to PC")
 
 URL = f"https://api.airtable.com/v0/{BASE_ID}/{TABLE_NAME}"
 HEADERS = {"Authorization": f"Bearer {AIRTABLE_TOKEN}"}
 
 def fetch_data():
-    # Naya data sabse upar dikhane ke liye sort use kiya hai
+    # Naya data sabse upar dikhane ke liye
     params = {"sort[0][field]": "Time", "sort[0][direction]": "desc"}
-    res = requests.get(URL, headers=HEADERS, params=params)
-    return res.json().get('records', []) if res.status_code == 200 else []
+    try:
+        res = requests.get(URL, headers=HEADERS, params=params)
+        return res.json().get('records', []) if res.status_code == 200 else []
+    except:
+        return []
 
 records = fetch_data()
 
 if not records:
-    st.info("Waiting for data from mobile...")
+    st.info("Waiting for data from mobile... Share something from your phone!")
 else:
     for record in records:
         fields = record.get('fields', {})
         content = fields.get('Content', "No text")
-        timestamp = fields.get('Time', "")
+        timestamp = fields.get('Time', "Unknown")
 
-        with st.container(border=True):
-            st.write(f"📅 **Received:** {timestamp}")
+        with st.container():
+            st.caption(f"📅 Received: {timestamp}")
             
-            # Text area for easy selection
-            st.text_area("Content:", content, height=150, key=record['id'])
+            # st.code use karne se top-right mein COPY ICON apne aap aayega
+            # language='python' rakha hai taaki code high-light ho, normal text ke liye bhi ye bada dikhega
+            st.code(content, language='python', wrap_lines=True)
             
-            # Check if it's a Python code or long text
-            if "import " in content or "def " in content:
-                st.code(content, language='python')
-
-            # File Attachment handle karna
+            # Agar koi file (jaise .py file) attach ho
             if 'FileAttachments' in fields:
-                st.subheader("📎 Attached Files")
                 for file in fields['FileAttachments']:
-                    col1, col2 = st.columns([3, 1])
-                    col1.write(f"📄 {file['filename']}")
-                    # Download button for .py or any file
-                    with open(file['url'], 'rb') as f:
-                        col2.download_button("Download File", file['url'], file_name=file['filename'])
+                    st.download_button(
+                        label=f"📥 Download {file['filename']}",
+                        data=requests.get(file['url']).content,
+                        file_name=file['filename']
+                    )
+            st.markdown("---")
 
-            st.divider()
-
-# Auto-refresh every 5 seconds
+# Auto-refresh har 5 second mein
 time.sleep(5)
 st.rerun()
