@@ -19,7 +19,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 st.set_page_config(page_title="AI Bridge Pro", page_icon="🚀", layout="wide")
 
-# Custom CSS for better look
+# Custom CSS
 st.markdown("""
     <style>
     .stCode { border: 2px solid #4A90E2 !important; border-radius: 10px !important; }
@@ -30,10 +30,9 @@ st.markdown("""
 
 st.title("🚀 AI Bridge: Universal Sync")
 
-# Tabs for different functions
-tab1, tab2 = st.tabs(["📋 AI Sync (Airtable)", "📂 Local File Sharing"])
+tab1, tab2 = st.tabs(["📋 AI Sync (Airtable)", "📂 File Sharing"])
 
-# --- TAB 1: AI SYNC (AIRTABLE LOGIC) ---
+# --- TAB 1: AI SYNC ---
 with tab1:
     st.subheader("📤 Send to Mobile")
     with st.expander("Write code or text to send", expanded=False):
@@ -58,9 +57,7 @@ with tab1:
         except: return []
 
     records = fetch_airtable_data()
-    if not records:
-        st.info("No messages found.")
-    else:
+    if records:
         for record in records:
             fields = record.get('fields', {})
             content = fields.get('Content', "")
@@ -69,18 +66,20 @@ with tab1:
                 st.caption(f"🕒 {time_str}")
                 st.code(content, language='python', wrap_lines=False)
 
-# --- TAB 2: LOCAL FILE SHARING ---
+# --- TAB 2: LOCAL FILE SHARING (Multiple Files) ---
 with tab2:
     st.subheader("📁 Transfer Files (Direct PC-Mobile)")
-    st.info("Note: Ye files aapke server/PC storage mein save hoti hain.")
     
-    # Upload Section
-    uploaded_file = st.file_uploader("Choose a file to upload:", type=None)
-    if uploaded_file is not None:
-        file_path = os.path.join(UPLOAD_FOLDER, uploaded_file.name)
-        with open(file_path, "wb") as f:
-            f.write(uploaded_file.getbuffer())
-        st.success(f"✅ `{uploaded_file.name}` uploaded successfully!")
+    # NEW: Multiple files enabled here
+    uploaded_files = st.file_uploader("Choose files to upload (Multiple allowed):", type=None, accept_multiple_files=True)
+    
+    if uploaded_files:
+        for uploaded_file in uploaded_files:
+            file_path = os.path.join(UPLOAD_FOLDER, uploaded_file.name)
+            # Avoid re-writing the same file if it exists
+            with open(file_path, "wb") as f:
+                f.write(uploaded_file.getbuffer())
+        st.success(f"✅ {len(uploaded_files)} files uploaded successfully!")
 
     st.divider()
     st.subheader("Available Files")
@@ -107,11 +106,12 @@ with tab2:
                     st.rerun()
 
     if files:
+        st.markdown("---")
         if st.button("🚨 Clear All Files", key="clear_all_files"):
             shutil.rmtree(UPLOAD_FOLDER)
             os.makedirs(UPLOAD_FOLDER, exist_ok=True)
             st.rerun()
 
-# Logic for Tab 1 Auto-refresh (har 15 second mein)
-time.sleep(10)
+# Auto-refresh optimized
+time.sleep(15)
 st.rerun()
