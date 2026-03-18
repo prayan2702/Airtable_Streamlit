@@ -5,7 +5,7 @@ import time
 # --- APNI DETAILS YAHAN BHAREIN ---
 AIRTABLE_TOKEN = "patY5mgE1F7z0NPca.a84cffc9f635dad84c6de8b2bc6067231df166124a191b057c9ff32195b79fa6"
 BASE_ID = "app3tvRmLUYUWw3cM"
-TABLE_NAME = "AI_Bridge" # Agar naam badla hai toh wo likhein
+TABLE_NAME = "Table 1" # Agar naam badla hai toh wo likhein
 
 URL = f"https://api.airtable.com/v0/{BASE_ID}/{TABLE_NAME}"
 HEADERS = {"Authorization": f"Bearer {AIRTABLE_TOKEN}"}
