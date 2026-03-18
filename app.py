@@ -10,33 +10,41 @@ TABLE_NAME = "Table 1"
 
 st.set_page_config(page_title="AI Sync Pro", page_icon="🚀", layout="wide")
 
-# CSS: Text box ko bada aur readable banane ke liye
+# CSS: Styling for better visibility and large code blocks
 st.markdown("""
 <style>
-    .stCode { 
-        border: 2px solid #4A90E2 !important; 
-        border-radius: 10px !important;
-    }
-    /* Code block ki height badhane ke liye custom CSS */
-    .stCode > div {
-        min-height: 300px !important;
-    }
-    .main {
-        background-color: #f9f9f9;
-    }
+    .stCode { border: 2px solid #4A90E2 !important; border-radius: 10px !important; }
+    .stCode > div { min-height: 250px !important; }
+    .main { background-color: #f9f9f9; }
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🚀 AI Sync: Mobile to PC")
-
 URL = f"https://api.airtable.com/v0/{BASE_ID}/{TABLE_NAME}"
-HEADERS = {"Authorization": f"Bearer {AIRTABLE_TOKEN}"}
+HEADERS = {"Authorization": f"Bearer {AIRTABLE_TOKEN}", "Content-Type": "application/json"}
+
+# --- SECTION 1: SEND TO MOBILE ---
+st.title("📤 Send to Mobile")
+with st.expander("Write code or text to send to Phone", expanded=False):
+    with st.form("send_form", clear_on_submit=True):
+        to_send = st.text_area("Type/Paste here:", height=150)
+        submitted = st.form_submit_button("Send to Mobile 📲")
+        if submitted and to_send:
+            res = requests.post(URL, headers=HEADERS, json={"records": [{"fields": {"Content": to_send}}]})
+            if res.status_code == 200:
+                st.success("Sent! Check Airtable app on your phone.")
+            else:
+                st.error("Failed to send.")
+
+st.divider()
+
+# --- SECTION 2: RECEIVE FROM MOBILE ---
+st.title("📥 Received from Mobile (Auto-Sync)")
 
 def fetch_data():
-    # Naya data sabse upar dikhane ke liye
-    params = {"sort[0][field]": "Time", "sort[0][direction]": "desc"}
+    # Latest 50 records fetching with Sort by Time
+    params = {"sort[0][field]": "Time", "sort[0][direction]": "desc", "maxRecords": 50}
     try:
-        res = requests.get(URL, headers=HEADERS, params=params)
+        res = requests.get(URL, headers={"Authorization": f"Bearer {AIRTABLE_TOKEN}"}, params=params)
         return res.json().get('records', []) if res.status_code == 200 else []
     except:
         return []
@@ -44,30 +52,25 @@ def fetch_data():
 records = fetch_data()
 
 if not records:
-    st.info("Waiting for data from mobile... Share something from your phone!")
+    st.info("Waiting for data... Share something from your iPhone Shortcut!")
 else:
     for record in records:
         fields = record.get('fields', {})
         content = fields.get('Content', "No text")
-        timestamp = fields.get('Time', "Unknown")
+        timestamp = fields.get('Time', "Unknown Time")
 
-        with st.container():
-            st.caption(f"📅 Received: {timestamp}")
-            
-            # st.code use karne se top-right mein COPY ICON apne aap aayega
-            # language='python' rakha hai taaki code high-light ho, normal text ke liye bhi ye bada dikhega
+        with st.container(border=True):
+            st.caption(f"🕒 Received: {timestamp}")
+            # st.code provides an automatic COPY button in the top-right corner
             st.code(content, language='python', wrap_lines=True)
             
-            # Agar koi file (jaise .py file) attach ho
+            # File Download Handling
             if 'FileAttachments' in fields:
                 for file in fields['FileAttachments']:
-                    st.download_button(
-                        label=f"📥 Download {file['filename']}",
-                        data=requests.get(file['url']).content,
-                        file_name=file['filename']
-                    )
-            st.markdown("---")
+                    st.download_button(label=f"📥 Download {file['filename']}", 
+                                     data=requests.get(file['url']).content, 
+                                     file_name=file['filename'])
 
-# Auto-refresh har 5 second mein
-time.sleep(5)
+# Auto-refresh every 7 seconds
+time.sleep(7)
 st.rerun()
