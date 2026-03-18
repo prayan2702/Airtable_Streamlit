@@ -3,7 +3,7 @@ import requests
 
 # --- CONFIGURATION ---
 # Token ke aage peeche koi space na rahe isliye .strip() use kiya hai
-RAW_TOKEN = "paty5mgE1F7z0NPca.a84cff9f635dad84c6de8b2bc6067231df166124a191b057c9ff32195b79fa6"
+RAW_TOKEN = "pat5Agw2Boueul8Xr.58d6e1c0de6e50dd5edefc64b0d1500389804a8ecaa48fda5b7249e7b2dd3ab8"
 AIRTABLE_TOKEN = RAW_TOKEN.strip()
 BASE_ID = "app3tvRmLUYUWw3cM"
 TABLE_NAME = "Table 1" 
