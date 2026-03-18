@@ -10,11 +10,11 @@ TABLE_NAME = "Table 1"
 
 st.set_page_config(page_title="AI Sync Pro", page_icon="🚀", layout="wide")
 
-# CSS: Styling for better visibility and large code blocks
+# CSS: Styling for large code blocks (Momentum App jaise bade code ke liye)
 st.markdown("""
 <style>
     .stCode { border: 2px solid #4A90E2 !important; border-radius: 10px !important; }
-    .stCode > div { min-height: 250px !important; }
+    .stCode > div { min-height: 400px !important; } 
     .main { background-color: #f9f9f9; }
 </style>
 """, unsafe_allow_html=True)
@@ -26,7 +26,7 @@ HEADERS = {"Authorization": f"Bearer {AIRTABLE_TOKEN}", "Content-Type": "applica
 st.title("📤 Send to Mobile")
 with st.expander("Write code or text to send to Phone", expanded=False):
     with st.form("send_form", clear_on_submit=True):
-        to_send = st.text_area("Type/Paste here:", height=150)
+        to_send = st.text_area("Type/Paste here:", height=200)
         submitted = st.form_submit_button("Send to Mobile 📲")
         if submitted and to_send:
             res = requests.post(URL, headers=HEADERS, json={"records": [{"fields": {"Content": to_send}}]})
@@ -61,8 +61,8 @@ else:
 
         with st.container(border=True):
             st.caption(f"🕒 Received: {timestamp}")
-            # st.code provides an automatic COPY button in the top-right corner
-            st.code(content, language='python', wrap_lines=True)
+            # IMPORTANT: st.code provides an automatic COPY button that preserves INDENTATION
+            st.code(content, language='python', wrap_lines=False)
             
             # File Download Handling
             if 'FileAttachments' in fields:
@@ -75,6 +75,6 @@ else:
                     except:
                         st.error("Could not load attachment.")
 
-# Auto-refresh every 7 seconds
-time.sleep(7)
+# Auto-refresh every 10 seconds (optimized for long code blocks)
+time.sleep(10)
 st.rerun()
