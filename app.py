@@ -67,9 +67,13 @@ else:
             # File Download Handling
             if 'FileAttachments' in fields:
                 for file in fields['FileAttachments']:
-                    st.download_button(label=f"📥 Download {file['filename']}", 
-                                     data=requests.get(file['url']).content, 
-                                     file_name=file['filename'])
+                    try:
+                        file_data = requests.get(file['url']).content
+                        st.download_button(label=f"📥 Download {file['filename']}", 
+                                         data=file_data, 
+                                         file_name=file['filename'])
+                    except:
+                        st.error("Could not load attachment.")
 
 # Auto-refresh every 7 seconds
 time.sleep(7)
