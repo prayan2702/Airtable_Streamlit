@@ -8,51 +8,50 @@ AIRTABLE_TOKEN = RAW_TOKEN.strip()
 BASE_ID = "app3tvRmLUYUWw3cM"
 TABLE_NAME = "Table 1" 
 
-st.set_page_config(page_title="AI Bridge", page_icon="📲")
-st.title("📲 Mobile to PC: AI Sync")
+st.set_page_config(page_title="AI Bridge Pro", page_icon="🚀", layout="wide")
+st.title("🚀 AI Sync: Mobile to PC")
 
-# API URL aur Headers
 URL = f"https://api.airtable.com/v0/{BASE_ID}/{TABLE_NAME}"
 HEADERS = {"Authorization": f"Bearer {AIRTABLE_TOKEN}"}
 
-# Data fetch karne ka function
-def fetch_airtable_data():
-    try:
-        # Sort by Created Time (descending) taaki naya message sabse upar dikhe
-        params = {"sort[0][field]": "Time", "sort[0][direction]": "desc"}
-        response = requests.get(URL, headers=HEADERS, params=params)
-        if response.status_code == 200:
-            return response.json().get('records', [])
-        else:
-            st.error(f"Error {response.status_code}: {response.text}")
-            return []
-    except Exception as e:
-        st.error(f"Connection Error: {e}")
-        return []
+def fetch_data():
+    # Naya data sabse upar dikhane ke liye sort use kiya hai
+    params = {"sort[0][field]": "Time", "sort[0][direction]": "desc"}
+    res = requests.get(URL, headers=HEADERS, params=params)
+    return res.json().get('records', []) if res.status_code == 200 else []
 
-# Placeholder taaki refresh hone par screen jhatka na mare
-placeholder = st.empty()
+records = fetch_data()
 
-with placeholder.container():
-    records = fetch_airtable_data()
-    if not records:
-        st.info("Airtable mein koi data nahi mila. Mobile se bhej kar dekhein!")
-    else:
-        # Sabse naya record dikhana
-        for record in records:
-            fields = record.get('fields', {})
-            content = fields.get('Content', fields.get('Contenrt', "No text available"))
-            timestamp = fields.get('Time', "Unknown time")
+if not records:
+    st.info("Waiting for data from mobile...")
+else:
+    for record in records:
+        fields = record.get('fields', {})
+        content = fields.get('Content', "No text")
+        timestamp = fields.get('Time', "")
+
+        with st.container(border=True):
+            st.write(f"📅 **Received:** {timestamp}")
             
-            st.markdown(f"**🕒 Time:** {timestamp}")
-            st.info(content)
+            # Text area for easy selection
+            st.text_area("Content:", content, height=150, key=record['id'])
             
+            # Check if it's a Python code or long text
+            if "import " in content or "def " in content:
+                st.code(content, language='python')
+
+            # File Attachment handle karna
             if 'FileAttachments' in fields:
+                st.subheader("📎 Attached Files")
                 for file in fields['FileAttachments']:
-                    st.image(file['url'], use_container_width=True)
+                    col1, col2 = st.columns([3, 1])
+                    col1.write(f"📄 {file['filename']}")
+                    # Download button for .py or any file
+                    with open(file['url'], 'rb') as f:
+                        col2.download_button("Download File", file['url'], file_name=file['filename'])
+
             st.divider()
 
-# --- AUTO REFRESH LOGIC ---
-# Har 5 second mein apne aap refresh hoga
+# Auto-refresh every 5 seconds
 time.sleep(5)
 st.rerun()
